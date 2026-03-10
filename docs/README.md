@@ -6,6 +6,7 @@ This repository started as a docs-first planning repo and now contains the first
 
 - `architecture.md`: current architecture direction and major subsystem decisions.
 - `credential-helper-contract.md`: the launch-time stdin/stdout JSON contract for external credential helpers.
+- `release.md`: the Release Please flow, versioning model, and release operator expectations.
 - `vertical-slice.md`: the first implementation target to build before expanding scope.
 - `adr/`: architecture decision records.
 - `research/`: source-backed notes from product and technical research.
@@ -32,4 +33,5 @@ This repository started as a docs-first planning repo and now contains the first
 - Temporary WinCred bridge targets are tracked without secret material and swept on CLI/desktop startup to reduce stale credential leakage after crashes.
 - The current Windows-native desktop build script targets `aarch64-pc-windows-msvc` for Windows on ARM machines.
 - CLI and desktop write structured operational logs to `%LocalAppData%\\RdpLaunch\\logs\\app.log` so helper/launch/UI behavior can be tailed during smoke tests without storing logs in SQLite.
+- Release automation is repo-level: Release Please bumps `[workspace.package].version`, opens a release PR, and publishes binaries plus an SBOM after that PR is merged and the follow-up `main` CI run succeeds.
 - Follow-on work should focus on deeper preset support, fuller profile editing, richer desktop polish, and real Windows-hosted smoke testing of the Dioxus shell and MSTSC integration.
