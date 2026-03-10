@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.2](https://github.com/Geogboe/rdp-launcher/compare/v0.1.1...v0.1.2) (2026-03-10)
+
+
+### 🐛 Bug Fixes
+
+* add manual release asset repair workflow ([3530f48](https://github.com/Geogboe/rdp-launcher/commit/3530f48293537dd7f678ed56e7e1ae7c05b0c8e4))
+* upload unique release asset filenames ([226ff7f](https://github.com/Geogboe/rdp-launcher/commit/226ff7f6d4cf3a3ebf470838f19af3db98ac72d4))
+
 ## [0.1.1](https://github.com/Geogboe/rdp-launcher/compare/v0.1.0...v0.1.1) (2026-03-10)
 
 
