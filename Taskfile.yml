@@ -1,0 +1,56 @@
+version: "3"
+
+tasks:
+  fmt:
+    cmds:
+      - cargo fmt --all
+
+  clippy:
+    cmds:
+      - cargo clippy --workspace --all-targets -- -D warnings
+
+  test:
+    cmds:
+      - cargo test --workspace
+
+  check:
+    cmds:
+      - task: fmt
+      - task: clippy
+      - task: test
+
+  desktop:build:
+    cmds:
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(wslpath -w ./scripts/build-windows-desktop.ps1)"
+
+  desktop:build-release:
+    cmds:
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(wslpath -w ./scripts/build-windows-desktop.ps1)" -Release
+
+  desktop:launch:
+    cmds:
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(wslpath -w ./scripts/run-windows-desktop.ps1)"
+
+  desktop:launch-release:
+    cmds:
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(wslpath -w ./scripts/run-windows-desktop.ps1)" -Release
+
+  desktop:run:
+    cmds:
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(wslpath -w ./scripts/run-windows-desktop.ps1)" -Build
+
+  desktop:run-release:
+    cmds:
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(wslpath -w ./scripts/run-windows-desktop.ps1)" -Build -Release
+
+  smoke:mstsc:
+    cmds:
+      - powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(wslpath -w ./scripts/smoke-mstsc-launch.ps1)" -Target 127.0.0.1 -Seconds 2
+
+  smoke:observe-once:
+    cmds:
+      - ./scripts/observe-state.sh --lines 20
+
+  smoke:observe:
+    cmds:
+      - ./scripts/observe-state.sh --watch --lines 20 --interval 2

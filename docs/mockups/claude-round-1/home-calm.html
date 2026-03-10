@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RDP Launch - Home (Calm)</title>
+  <style>
+    :root {
+      --bg: #e8e8e8;
+      --panel: #f6f6f6;
+      --surface: #ffffff;
+      --ink: #1a1a1a;
+      --secondary: #555555;
+      --muted: #888888;
+      --line: #e0e0e0;
+      --line-subtle: #ebebeb;
+      --accent: #0067b8;
+      --accent-text: #0053a0;
+      --active-bg: #e8f4ea;
+      --active-dot: #2d8a42;
+      --warn-text: #96652a;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 32px;
+      font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+      font-size: 13px;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    .window {
+      width: min(100%, 620px);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    /* ---- Title bar ---- */
+    .titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .titlebar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .app-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 3px;
+      background: var(--accent);
+    }
+
+    .titlebar h1 {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
+    .window-controls {
+      display: flex;
+      gap: 1px;
+    }
+
+    .window-controls span {
+      display: block;
+      width: 46px;
+      height: 30px;
+      background: transparent;
+      border: none;
+      text-align: center;
+      line-height: 30px;
+      font-size: 10px;
+      color: var(--ink);
+    }
+
+    .window-controls span:hover {
+      background: #e5e5e5;
+    }
+
+    /* ---- Search / toolbar ---- */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .search-box {
+      flex: 1;
+      padding: 6px 10px;
+      font-size: 13px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--panel);
+      color: var(--muted);
+    }
+
+    .toolbar-btn {
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--surface);
+      background: var(--accent);
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* ---- Main list ---- */
+    .list-section {
+      padding: 0;
+    }
+
+    .section-label {
+      padding: 8px 16px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      background: var(--panel);
+      border-bottom: 1px solid var(--line-subtle);
+    }
+
+    /* ---- Row ---- */
+    .row {
+      display: grid;
+      grid-template-columns: 6px 1fr auto;
+      gap: 0;
+      align-items: center;
+      padding: 0;
+      border-bottom: 1px solid var(--line-subtle);
+      background: var(--surface);
+      cursor: default;
+    }
+
+    .row:last-child {
+      border-bottom: none;
+    }
+
+    .row:hover {
+      background: #f0f4ff;
+    }
+
+    .row.selected {
+      background: #e8eef8;
+    }
+
+    /* Active indicator — thin left edge */
+    .row-indicator {
+      width: 3px;
+      height: 100%;
+      border-radius: 0 2px 2px 0;
+    }
+
+    .row.active .row-indicator {
+      background: var(--active-dot);
+    }
+
+    .row-body {
+      padding: 10px 14px 10px 10px;
+      display: grid;
+      gap: 2px;
+    }
+
+    .row-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .row-host {
+      font-size: 12px;
+      color: var(--secondary);
+      font-family: "Cascadia Code", "Consolas", monospace;
+    }
+
+    .row-meta {
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .row-right {
+      padding-right: 16px;
+      text-align: right;
+      display: grid;
+      gap: 2px;
+      justify-items: end;
+    }
+
+    /* Session status — text only, no pill */
+    .status-active {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--active-dot);
+    }
+
+    .status-ready {
+      font-size: 11.5px;
+      color: var(--muted);
+    }
+
+    .status-warn {
+      font-size: 11.5px;
+      color: var(--warn-text);
+    }
+
+    .row-time {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* ---- Status bar ---- */
+    .statusbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 16px;
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--panel);
+      border-top: 1px solid var(--line);
+    }
+
+    .statusbar-left {
+      display: flex;
+      gap: 16px;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--active-dot);
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <div class="window">
+    <!-- Title bar -->
+    <div class="titlebar">
+      <div class="titlebar-left">
+        <div class="app-icon"></div>
+        <h1>RDP Launch</h1>
+      </div>
+      <div class="window-controls">
+        <span>&#x2012;</span>
+        <span>&#x25A1;</span>
+        <span>&#x2715;</span>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-box">Search connections...</div>
+      <div class="toolbar-btn">+ New</div>
+    </div>
+
+    <!-- Active sessions -->
+    <div class="list-section">
+      <div class="section-label">Active Sessions</div>
+
+      <div class="row active">
+        <div class="row-indicator"></div>
+        <div class="row-body">
+          <div class="row-title">SQL Cluster - Primary</div>
+          <div class="row-host">sql-pri-01.corp.example</div>
+          <div class="row-meta">Remote Guard &middot; Clipboard off</div>
+        </div>
+        <div class="row-right">
+          <div class="status-active">Connected</div>
+          <div class="row-time">18 min</div>
+        </div>
+      </div>
+
+      <div class="row active">
+        <div class="row-indicator"></div>
+        <div class="row-body">
+          <div class="row-title">Client Support Jumpbox</div>
+          <div class="row-host">jump.eu-west.client.example</div>
+          <div class="row-meta">Gateway &middot; WebAuthn</div>
+        </div>
+        <div class="row-right">
+          <div class="status-active">Connected</div>
+          <div class="row-time">Just now</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Available connections -->
+    <div class="list-section">
+      <div class="section-label">Connections</div>
+
+      <div class="row">
+        <div class="row-indicator"></div>
+        <div class="row-body">
+          <div class="row-title">Design Workstation</div>
+          <div class="row-host">192.0.2.10</div>
+          <div class="row-meta">Multi-monitor &middot; Clipboard on</div>
+        </div>
+        <div class="row-right">
+          <div class="status-warn">Prompt auth</div>
+          <div class="row-time">Yesterday 16:24</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="row-indicator"></div>
+        <div class="row-body">
+          <div class="row-title">Build Agent</div>
+          <div class="row-host">build-03.lab.example</div>
+          <div class="row-meta">Standard session</div>
+        </div>
+        <div class="row-right">
+          <div class="status-ready">Ready</div>
+          <div class="row-time">2 days ago</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="row-indicator"></div>
+        <div class="row-body">
+          <div class="row-title">Legacy Finance Host</div>
+          <div class="row-host">fin-legacy-02.corp.example</div>
+          <div class="row-meta">Restricted admin &middot; No clipboard</div>
+        </div>
+        <div class="row-right">
+          <div class="status-ready">Ready</div>
+          <div class="row-time">4 days ago</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="row-indicator"></div>
+        <div class="row-body">
+          <div class="row-title">Staging Web Server</div>
+          <div class="row-host">web-stg-01.corp.example</div>
+          <div class="row-meta">Gateway &middot; Remote Guard</div>
+        </div>
+        <div class="row-right">
+          <div class="status-ready">Ready</div>
+          <div class="row-time">Last week</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="row-indicator"></div>
+        <div class="row-body">
+          <div class="row-title">Domain Controller - DR</div>
+          <div class="row-host">dc-dr-01.corp.example</div>
+          <div class="row-meta">Restricted admin &middot; No redirection</div>
+        </div>
+        <div class="row-right">
+          <div class="status-ready">Ready</div>
+          <div class="row-time">2 weeks ago</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status bar -->
+    <div class="statusbar">
+      <div class="statusbar-left">
+        <span><span class="status-dot"></span>2 active sessions</span>
+        <span>7 connections</span>
+      </div>
+      <span>Helper: connected</span>
+    </div>
+  </div>
+</body>
+</html>

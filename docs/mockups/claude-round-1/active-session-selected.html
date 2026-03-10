@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RDP Launch - Active Session Selected</title>
+  <style>
+    :root {
+      --bg: #e8e8e8;
+      --panel: #f6f6f6;
+      --surface: #ffffff;
+      --ink: #1a1a1a;
+      --secondary: #555555;
+      --muted: #888888;
+      --line: #e0e0e0;
+      --line-subtle: #ebebeb;
+      --accent: #0067b8;
+      --active-dot: #2d8a42;
+      --warn-text: #96652a;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 32px;
+      font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+      font-size: 13px;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    .window {
+      width: min(100%, 680px);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .titlebar, .toolbar, .statusbar { background: var(--surface); }
+    .titlebar, .toolbar { border-bottom: 1px solid var(--line); }
+    .titlebar, .toolbar, .statusbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+    }
+    .titlebar-left, .statusbar-left { display: flex; align-items: center; gap: 10px; }
+    .app-icon { width: 16px; height: 16px; border-radius: 3px; background: var(--accent); }
+    .search-box {
+      flex: 1;
+      margin-right: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--panel);
+      color: var(--muted);
+    }
+    .toolbar-btn, .btn {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 4px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .btn.primary, .toolbar-btn { background: var(--accent); color: white; border-color: var(--accent); }
+    .split { display: grid; grid-template-columns: 1fr 240px; }
+    .section-label {
+      padding: 8px 16px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      background: var(--panel);
+      border-bottom: 1px solid var(--line-subtle);
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 6px 1fr auto;
+      align-items: center;
+      border-bottom: 1px solid var(--line-subtle);
+      background: var(--surface);
+    }
+    .row.selected { background: #e8eef8; }
+    .row-indicator { width: 3px; height: 100%; }
+    .row.active .row-indicator { background: var(--active-dot); }
+    .row-body { padding: 10px 12px 10px 10px; display: grid; gap: 1px; }
+    .row-title { font-weight: 600; }
+    .row-host { font-size: 12px; color: var(--secondary); font-family: "Cascadia Code", "Consolas", monospace; }
+    .row-right { padding-right: 12px; text-align: right; }
+    .status-active { font-size: 11.5px; font-weight: 600; color: var(--active-dot); }
+    .status-ready { font-size: 11.5px; color: var(--muted); }
+    .row-time { font-size: 11px; color: var(--muted); }
+    .inspector {
+      border-left: 1px solid var(--line);
+      background: var(--panel);
+      padding: 14px 16px;
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+    .inspector-title { font-size: 14px; font-weight: 600; }
+    .inspector-host { font-size: 12px; color: var(--secondary); font-family: "Cascadia Code", "Consolas", monospace; }
+    .inspector-section { display: grid; gap: 6px; }
+    .inspector-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 3px 0;
+      font-size: 12px;
+    }
+    .detail-label { color: var(--secondary); }
+    .detail-value { text-align: right; }
+    .detail-value.good { color: var(--active-dot); }
+    .inspector-actions { display: flex; gap: 8px; padding-top: 4px; flex-wrap: wrap; }
+    .statusbar { border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="window">
+    <div class="titlebar">
+      <div class="titlebar-left">
+        <div class="app-icon"></div>
+        <strong>RDP Launch</strong>
+      </div>
+      <div>Active session selected</div>
+    </div>
+    <div class="toolbar">
+      <div class="search-box">Search connections...</div>
+      <div class="toolbar-btn">+ New</div>
+    </div>
+    <div class="split">
+      <div>
+        <div class="section-label">Active Sessions</div>
+        <div class="row active selected">
+          <div class="row-indicator"></div>
+          <div class="row-body">
+            <div class="row-title">SQL Cluster - Primary</div>
+            <div class="row-host">sql-pri-01.corp.example</div>
+          </div>
+          <div class="row-right">
+            <div class="status-active">Connected</div>
+            <div class="row-time">18 min</div>
+          </div>
+        </div>
+        <div class="row active">
+          <div class="row-indicator"></div>
+          <div class="row-body">
+            <div class="row-title">Client Support Jumpbox</div>
+            <div class="row-host">jump.eu-west.client.example</div>
+          </div>
+          <div class="row-right">
+            <div class="status-active">Connected</div>
+            <div class="row-time">Just now</div>
+          </div>
+        </div>
+        <div class="section-label">Connections</div>
+        <div class="row">
+          <div class="row-indicator"></div>
+          <div class="row-body">
+            <div class="row-title">Design Workstation</div>
+            <div class="row-host">192.0.2.10</div>
+          </div>
+          <div class="row-right">
+            <div class="status-ready">Ready</div>
+            <div class="row-time">Yesterday</div>
+          </div>
+        </div>
+      </div>
+      <aside class="inspector">
+        <div>
+          <div class="inspector-title">SQL Cluster - Primary</div>
+          <div class="inspector-host">sql-pri-01.corp.example</div>
+        </div>
+        <div class="inspector-section">
+          <div class="inspector-section-title">Session</div>
+          <div class="detail-row"><span class="detail-label">State</span><span class="detail-value good">Connected</span></div>
+          <div class="detail-row"><span class="detail-label">PID</span><span class="detail-value">14844</span></div>
+          <div class="detail-row"><span class="detail-label">Started</span><span class="detail-value">18 min ago</span></div>
+          <div class="detail-row"><span class="detail-label">Window</span><span class="detail-value">Visible</span></div>
+        </div>
+        <div class="inspector-section">
+          <div class="inspector-section-title">Launch</div>
+          <div class="detail-row"><span class="detail-label">Preset</span><span class="detail-value">Admin</span></div>
+          <div class="detail-row"><span class="detail-label">Security</span><span class="detail-value">Remote Guard</span></div>
+          <div class="detail-row"><span class="detail-label">Credential path</span><span class="detail-value">Helper + WinCred</span></div>
+        </div>
+        <div class="inspector-actions">
+          <div class="btn">Reveal window</div>
+          <div class="btn">Open profile</div>
+          <div class="btn primary">Launch new</div>
+        </div>
+      </aside>
+    </div>
+    <div class="statusbar">
+      <div class="statusbar-left"><span>2 active sessions</span><span>7 connections</span></div>
+      <span>Helper: connected</span>
+    </div>
+  </div>
+</body>
+</html>

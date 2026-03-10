@@ -1,0 +1,6 @@
+/target
+/.task
+*.db
+*.db-shm
+*.db-wal
+*.rdp
