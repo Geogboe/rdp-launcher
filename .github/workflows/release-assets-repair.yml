@@ -1,0 +1,66 @@
+name: Release Assets Repair
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: Existing release tag to build and upload assets for
+        required: true
+        default: v0.1.1
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Build Release (${{ matrix.target }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-pc-windows-msvc
+            suffix: x86_64-windows
+            vcvars_arch: x64
+          - target: aarch64-pc-windows-msvc
+            suffix: aarch64-windows
+            vcvars_arch: amd64_arm64
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag_name }}
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.vcvars_arch }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: repair-${{ inputs.tag_name }}-${{ matrix.target }}
+
+      - name: Build release binaries
+        run: cargo build --workspace --release --target ${{ matrix.target }}
+        env:
+          CARGO_INCREMENTAL: "0"
+
+      - name: Upload release assets
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p release-assets
+          cp "target/${{ matrix.target }}/release/rdp-launch-cli.exe" \
+            "release-assets/rdp-launch-cli-${{ matrix.suffix }}.exe"
+          cp "target/${{ matrix.target }}/release/rdp-launch-desktop.exe" \
+            "release-assets/rdp-launch-desktop-${{ matrix.suffix }}.exe"
+
+          gh release upload "${{ inputs.tag_name }}" \
+            --clobber \
+            "release-assets/rdp-launch-cli-${{ matrix.suffix }}.exe" \
+            "release-assets/rdp-launch-desktop-${{ matrix.suffix }}.exe"
