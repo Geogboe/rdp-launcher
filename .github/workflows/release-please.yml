@@ -90,10 +90,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          mkdir -p release-assets
+          cp "target/${{ matrix.target }}/release/rdp-launch-cli.exe" \
+            "release-assets/rdp-launch-cli-${{ matrix.suffix }}.exe"
+          cp "target/${{ matrix.target }}/release/rdp-launch-desktop.exe" \
+            "release-assets/rdp-launch-desktop-${{ matrix.suffix }}.exe"
+
           gh release upload "${{ needs.release-please.outputs.tag_name }}" \
-            --clobber \
-            "target/${{ matrix.target }}/release/rdp-launch-cli.exe#rdp-launch-cli-${{ matrix.suffix }}.exe" \
-            "target/${{ matrix.target }}/release/rdp-launch-desktop.exe#rdp-launch-desktop-${{ matrix.suffix }}.exe"
+            "release-assets/rdp-launch-cli-${{ matrix.suffix }}.exe" \
+            "release-assets/rdp-launch-desktop-${{ matrix.suffix }}.exe"
 
   # ── 3. Generate SBOM and attach it to the release ─────────────────────────
   #
