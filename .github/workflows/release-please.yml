@@ -35,6 +35,22 @@ jobs:
           config-file:   .github/release-please-config.json
           manifest-file: .release-please-manifest.json
 
+      # Auto-approve the release PR so it can be merged without a human
+      # reviewer when "Allow GitHub Actions to create and approve pull
+      # requests" is enabled in the repository settings.
+      # Then enable auto-merge so the PR merges once all required CI checks
+      # pass.  Requires "Allow auto-merge" to be enabled in repository
+      # settings.
+      - name: Auto-approve and enable auto-merge for release PR
+        if: ${{ steps.release.outputs.pr != '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ fromJSON(steps.release.outputs.pr).number }}"
+          gh pr review "$PR_NUMBER" --approve \
+            --body "Auto-approved by release-please workflow."
+          gh pr merge "$PR_NUMBER" --auto --squash
+
   # ── 2. Build Windows binaries and attach them to the release ───────────────
   #
   # Runs only when release-please actually created a new release (i.e. the
