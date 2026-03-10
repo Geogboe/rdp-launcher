@@ -1,0 +1,50 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run a full scan every Monday at 06:00 UTC to catch newly-published advisories.
+    - cron: "0 6 * * 1"
+
+# Default to read-only access; individual jobs request only what they need.
+permissions:
+  contents: read
+
+jobs:
+  # ── Secret scanning ─────────────────────────────────────────────────────────
+  gitleaks:
+    name: Secret Scan (gitleaks)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Required to upload SARIF results to the GitHub Security tab.
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history so gitleaks can scan every commit, not just the HEAD.
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Add GITLEAKS_LICENSE to repository secrets for private-repo scanning.
+          # GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+  # ── Dependency advisory check ────────────────────────────────────────────────
+  cargo-audit:
+    name: Dependency Audit (cargo audit)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Required to post audit results as check annotations on the PR.
+      checks: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
