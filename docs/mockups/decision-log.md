@@ -5,6 +5,7 @@ These notes explain what the current mockups are trying to test.
 Earlier broad explorations were useful for narrowing the product direction, but the repo now keeps only the current baseline artifacts that still inform implementation.
 
 ## Claude Round 1 - Calm Utility Direction
+
 - Tests whether stripping the warm cream palette, rounded corners, and chip-heavy rows in favor of a neutral gray, Windows-native look produces a calmer home screen.
 - Replaces per-row pills and badges with inline text metadata (middot-separated) and semantic-colored status text.
 - Adds a title bar and status bar to frame the mockup as a real desktop window rather than a floating concept.

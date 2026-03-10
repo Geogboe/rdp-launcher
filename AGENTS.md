@@ -1,9 +1,11 @@
 # AGENTS.md
 
 ## Purpose
+
 This repository is for planning and building a Windows desktop launcher for `mstsc.exe`. The product is not a replacement RDP client; it is a higher-level launcher, profile manager, and local session monitor for the Windows inbox Remote Desktop Connection client.
 
 ## Working Rules
+
 - Start with docs before app code. Capture architecture in `docs/architecture.md`, decisions in `docs/adr/`, research notes in `docs/research/`, and UI planning artifacts in `docs/mockups/`.
 - When research changes how coding agents should work in this repo, update this file in the same change.
 - Do not read `.env`, `.envrc`, or similar secret-bearing files.
@@ -12,6 +14,7 @@ This repository is for planning and building a Windows desktop launcher for `mst
 - Prefer stable, Windows-supported behavior over clever workarounds. `mstsc.exe`, `.rdp` files, Win32 APIs, and Windows Credential Manager are the expected integration points unless a documented alternative is clearly superior.
 
 ## Planning Conventions
+
 - Write research notes as concise, source-backed markdown files under `docs/research/`.
 - Favor ADRs for decisions that materially affect interfaces, data modeling, security posture, or repo structure.
 - Keep mockups in `docs/mockups/` as self-contained HTML or markdown so they can be reviewed without any app runtime.
@@ -19,6 +22,7 @@ This repository is for planning and building a Windows desktop launcher for `mst
 - Prefer promoting one clear baseline mockup rather than leaving several competing "preferred" directions active in the repo.
 
 ## Product Assumptions
+
 - Windows-only.
 - Desktop app is the primary UX.
 - CLI is a companion surface that shares the same core services and data model.
@@ -27,6 +31,7 @@ This repository is for planning and building a Windows desktop launcher for `mst
 - The current preferred home-view baseline is `docs/mockups/claude-round-1/home-with-inspector-calm.html`.
 
 ## Agent Workflow
+
 - Ground decisions in primary Microsoft documentation whenever behavior relates to `mstsc`, `.rdp` properties, WinCred, Credential Guard, or Windows RDP policy.
 - Prefer repo artifacts over long chat summaries. If a conclusion should survive the conversation, write it into `docs/` or `AGENTS.md`.
 - If a planning conversation produces a concrete decision, capture it in an ADR rather than leaving it implicit in architecture prose.
