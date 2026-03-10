@@ -1,0 +1,127 @@
+name: Release Please
+
+# Runs only after the CI workflow completes successfully on main, so a release
+# is never created from a commit that fails to build or test.
+on:
+  workflow_run:
+    workflows: [CI]
+    branches: [main]
+    types: [completed]
+
+# Prevent concurrent Release Please runs from racing over the same PR/tag when
+# two CI runs complete in quick succession.
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # ── 1. Create / update the release PR and tag ──────────────────────────────
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name:        ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token:         ${{ secrets.GITHUB_TOKEN }}
+          config-file:   .github/release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  # ── 2. Build Windows binaries and attach them to the release ───────────────
+  #
+  # Runs only when release-please actually created a new release (i.e. the
+  # release PR was just merged).  Builds both x86-64 and ARM64 binaries on a
+  # Windows runner so that every release ships two ready-to-run executables for
+  # each architecture.
+  build-release:
+    name: Build Release (${{ matrix.target }})
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-pc-windows-msvc
+            suffix: x86_64-windows
+            vcvars_arch: x64
+          - target: aarch64-pc-windows-msvc
+            suffix: aarch64-windows
+            vcvars_arch: amd64_arm64
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Build from the exact commit that was tagged, not whatever HEAD is now.
+          ref: ${{ needs.release-please.outputs.tag_name }}
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      # Initialise the correct MSVC host/target toolset for each architecture.
+      # For ARM64 this selects the x64-hosted cross-compilation tools
+      # (amd64_arm64) so that link.exe and the Windows SDK ARM64 headers are
+      # on PATH before Cargo runs, matching the VsDevCmd.bat guidance in
+      # AGENTS.md for aarch64-pc-windows-msvc builds.
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.vcvars_arch }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: release-${{ matrix.target }}
+
+      - name: Build release binaries
+        run: cargo build --workspace --release --target ${{ matrix.target }}
+        env:
+          CARGO_INCREMENTAL: "0"
+
+      - name: Upload release assets
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ needs.release-please.outputs.tag_name }}" \
+            --clobber \
+            "target/${{ matrix.target }}/release/rdp-launch-cli.exe#rdp-launch-cli-${{ matrix.suffix }}.exe" \
+            "target/${{ matrix.target }}/release/rdp-launch-desktop.exe#rdp-launch-desktop-${{ matrix.suffix }}.exe"
+
+  # ── 3. Generate SBOM and attach it to the release ─────────────────────────
+  #
+  # Produces a machine-readable Software Bill of Materials in SPDX JSON format
+  # so downstream consumers can audit what went into each release.
+  generate-sbom:
+    name: Generate SBOM
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+
+      - name: Generate SBOM (SPDX JSON)
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Upload SBOM to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ needs.release-please.outputs.tag_name }}" \
+            --clobber \
+            sbom.spdx.json#sbom.spdx.json

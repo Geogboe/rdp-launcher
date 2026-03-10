@@ -162,7 +162,7 @@ This is the standard pattern for Win32 callbacks and is safe as long as the `sea
 ### 1.6 Dependency Analysis — CLEAN
 
 | Crate | Version | Assessment |
-|-------|---------|------------|
+| --- | --- | --- |
 | `rusqlite` 0.37 (bundled) | Mature, widely audited | Safe |
 | `serde` / `serde_json` 1.0 | Industry standard | Safe |
 | `thiserror` 2.0 | Trivial derive macro | Safe |
@@ -179,7 +179,7 @@ No git dependencies, no path overrides (except workspace members), no deprecated
 ### 1.7 Threat Matrix Summary
 
 | # | Threat | Severity | Status |
-|---|--------|----------|--------|
+| --- | --- | --- | --- |
 | SEC-1 | Unvalidated helper executable path | Low | Recommend pre-flight check |
 | SEC-2 | cmdkey argument parsing with special chars | Low | Recommend hostname validation |
 | SEC-3 | Shell metachar in non-Windows stub | Info | Recommend removing shell usage |
@@ -288,6 +288,7 @@ loop {
 ```
 
 Issues:
+
 1. **stdin is not dropped before the wait loop.** The helper process may be blocked reading stdin, waiting for EOF. The `stdin` handle (taken via `child.stdin.as_mut()`) is not explicitly dropped before entering the loop. Rust's ownership means `child` still owns the stdin pipe. This could cause a deadlock: the helper waits for stdin EOF, this code waits for the helper to exit.
 
 2. **Polling with `try_wait` + sleep is less efficient than `child.wait_timeout_output()`.** The `wait-timeout` crate provides this, or you can drop stdin and call `child.wait_with_output()` in a separate thread with a timeout.
@@ -328,6 +329,7 @@ This is the most impactful finding in the codebase. Without it, helpers that rea
 ### 2.10 Unsafe Code — MINIMAL AND CORRECT
 
 Only two locations use `unsafe`:
+
 1. `sessions.rs:107-113` — `OpenProcess` / `CloseHandle` (Win32 FFI, minimal scope)
 2. `reveal.rs:18-46` — `EnumWindows` callback with pointer cast (standard Win32 pattern)
 
@@ -340,14 +342,14 @@ Both are behind `#[cfg(target_os = "windows")]` and have non-Windows fallbacks. 
 ### Must Fix (before v1)
 
 | # | Issue | File | Effort |
-|---|-------|------|--------|
+| --- | --- | --- | --- |
 | RUST-9 | **Drop stdin before helper wait loop** — potential deadlock | `helper.rs:222` | 1 line |
 | SEC-3 | Remove shell usage in non-Windows stub | `launcher.rs:233-240` | 2 lines |
 
 ### Should Fix (before wider adoption)
 
 | # | Issue | File | Effort |
-|---|-------|------|--------|
+| --- | --- | --- | --- |
 | RUST-8 | Log errors from `update_session_history` instead of discarding | `sessions.rs:49` | 5 lines |
 | SEC-2 | Validate cmdkey target/username characters | `credentials.rs` | ~20 lines |
 | SEC-1 | Pre-flight check on helper executable | `helper.rs` | ~10 lines |
@@ -357,7 +359,7 @@ Both are behind `#[cfg(target_os = "windows")]` and have non-Windows fallbacks. 
 ### Nice to Have (future improvement)
 
 | # | Issue | File | Effort |
-|---|-------|------|--------|
+| --- | --- | --- | --- |
 | RUST-2 | Split `ProfileStore` trait into focused traits | `store.rs` | Medium refactor |
 | RUST-4 | Avoid unnecessary draft clone in `save_profile` | `store.rs:234` | Small refactor |
 | SEC-5 | File locking for bridge lease state | `credential_state.rs` | ~20 lines |
@@ -368,7 +370,7 @@ Both are behind `#[cfg(target_os = "windows")]` and have non-Windows fallbacks. 
 ## Appendix: Files Reviewed
 
 | File | Lines | Purpose |
-|------|-------|---------|
+| --- | --- | --- |
 | `crates/core/src/lib.rs` | 35 | Re-exports |
 | `crates/core/src/helper.rs` | 323 | Helper process client |
 | `crates/core/src/launch.rs` | 185 | Launch planning |

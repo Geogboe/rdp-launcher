@@ -3,6 +3,7 @@
 This repository started as a docs-first planning repo and now contains the first implementation slice.
 
 ## Structure
+
 - `architecture.md`: current architecture direction and major subsystem decisions.
 - `credential-helper-contract.md`: the launch-time stdin/stdout JSON contract for external credential helpers.
 - `vertical-slice.md`: the first implementation target to build before expanding scope.
@@ -11,6 +12,7 @@ This repository started as a docs-first planning repo and now contains the first
 - `mockups/`: HTML mockups and prompt packs for UI exploration.
 
 ## Current Direction
+
 - Windows-only desktop application with a companion CLI.
 - `mstsc.exe` remains the execution engine.
 - Configuration is modeled around Microsoft-documented `.rdp` properties.
@@ -19,6 +21,7 @@ This repository started as a docs-first planning repo and now contains the first
 - The current workspace contains `core`, `windows`, `cli`, and `desktop` Rust crates aligned to the architecture.
 
 ## Current Implementation Status
+
 - The `Launch And Inspect` slice is implemented in code with a focused `.rdp` property subset, SQLite-backed profiles/presets/session history, helper contract support, CLI commands, and a Windows-gated desktop shell.
 - Windows-specific integrations are kept behind platform gates so core logic, tests, and linting can still run in Linux-hosted agent environments.
 - Desktop create/edit intentionally stays on MSTSC-native credential prompting for now; helper-specific launch policy still exists in shared core logic and the CLI, but is not a primary desktop UX surface in slice one.
